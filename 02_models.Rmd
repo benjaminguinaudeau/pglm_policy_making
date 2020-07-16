@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+pacman::p_load(tidyverse, pglm)
+```
+
+## Load data
+
+```{r}
+load("policy_making_all.Rdata")
+
+df <- data 
+```
+
+# Model 1
+
+```{r}
+formula <- n_laws ~ salience_seat + clp + time + ideo_gov + elec_cycle_12 + gov_pop_l1 + mip_share_l1
+  
+fit_1 <- pglm::pglm(formula = formula, data = df, 
+        family = pglm::negbin, model = "within", index = c("topic","month"))
+
+summary(fit_1)
+
+```
+
+# Model 2
+
+```{r}
+formula <- n_laws ~ salience_seat + clp + time + ideo_gov + elec_cycle_12 + gov_pop_l1 + mip_share_l1 + europe + account_balance_perc_l1
+  
+fit_2 <- pglm::pglm(formula = formula, data = df, 
+        family = pglm::negbin, model = "within", index = c("topic","month"))
+
+summary(fit_1)
+
+```
+
+# Model 3
+
+```{r}
+formula <- n_laws ~ salience_seat + clp + time + elec_cycle_12 + gov_pop_l1 + mip_share_l1 + 
+  # ideo_gov +
+  europe + account_balance_perc_l1 +
+  bundesratmaj + 
+  rile_diff +
+  salience_diff 
+  
+fit_3 <- pglm::pglm(formula = formula, data = df, 
+        family = pglm::negbin, model = "within", index = c("topic","month"))
+
+summary(fit_3)
+
+```
+
+# Model 4
+
+```{r}
+formula <- n_laws ~ salience_seat + clp + time + elec_cycle_12 + gov_pop_l1 + mip_share_l1 + 
+  # ideo_gov +
+  europe + account_balance_perc_l1 +
+  bundesratmaj + 
+  rile_diff +
+  salience_diff +
+  salience_seat * europe
+  
+fit_4 <- pglm::pglm(formula = formula, data = df, 
+        family = pglm::negbin, model = "within", index = c("topic","month"))
+
+summary(fit_4)
+```
+
+# Model 5
+
+```{r}
+formula <- n_laws ~ salience_seat + clp + time + elec_cycle_12 + gov_pop_l1 + mip_share_l1 + 
+  # ideo_gov +
+  europe + account_balance_perc_l1 +
+  bundesratmaj + 
+  rile_diff +
+  salience_diff +
+  # salience_seat * bundesratmaj
+  salience_seat * rile_diff
+  # salience_seat * salience_diff
+  
+  
+fit_5 <- pglm::pglm(formula = formula, data = df, 
+        family = pglm::negbin, model = "within", index = c("topic","month"))
+
+summary(fit_5)
+library(arm)
+a <- bind_cols(df, sim_pglm(fit_5, 5, df, formula))
+
+get_marginal_effect(sims = a, term = "salience_seat*rile_diff")
+
+```
